@@ -3,6 +3,7 @@ using DapperExample.Entities;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -69,18 +70,45 @@ namespace DapperExample
 
             }
         }
+        private void Delete(int id)
+        {
+            using (var connection = new SqlConnection(ConfigurationManager.ConnectionStrings["MyConnString"].ConnectionString))
+            {
+                connection.Open();
+                connection.Execute("DELETE FROM Products WHERE Id=@PId", new { PId = id });
+                MessageBox.Show("Product Deleted Successfully");
+            }
+        }
+        private void CallSP()
+        {
+            using (var connection = new SqlConnection(ConfigurationManager.ConnectionStrings["MyConnString"].ConnectionString))
+            {
+                DynamicParameters parameter = new DynamicParameters();
 
+                connection.Open();
+
+                parameter.Add("@P_Price", DbType.Decimal);
+                var data=connection.Query<Product>("ShowGreaterThan",
+    parameter,
+    commandType: CommandType.StoredProcedure);
+
+                mydatagrid.ItemsSource = data.ToList();
+
+            }
+        }
         public MainWindow()
         {
             InitializeComponent();
             //InsertProduct(new Product { Name = "ASUS Rog", Price = 4300 });
-            mydatagrid.ItemsSource = GetAll();
+          //  mydatagrid.ItemsSource = GetAll();
 
-            var product = GetById(1);
-            product.Name = "ACER PREDATOR";
-            product.Price = 10001;
-            Update(product);
-            mydatagrid.ItemsSource = GetAll();
+            //var product = GetById(1);
+            //product.Name = "ACER PREDATOR";
+            //product.Price = 10001;
+            //Update(product);
+            //Delete(1);
+            CallSP();
+//            mydatagrid.ItemsSource = GetAll();
         }
     }
 }
